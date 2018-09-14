@@ -75,4 +75,55 @@ class PagerTest {
         val pager = Pager(numItems = 2)
         assertEquals(1, pager.nextPageLinkParam)
     }
+
+    @Test
+    fun onFirstPagePreviousPageLinkShouldBeNull() {
+        val pager = Pager(50, 0, 100)
+        assertNull(pager.previousPageLinkParam)
+    }
+
+    @Test
+    fun onSecondPagePreviousPageLinkParamShouldReturnZero() {
+        val pager = Pager(20, 1, 42)
+        assertEquals(0, pager.previousPageLinkParam)
+    }
+
+    @Test
+    fun lastPageLinkParamShouldReturnTheNumberEqualToNumberOfPages() {
+        val pagerOne = Pager()
+        assertEquals(pagerOne.numPages, pagerOne.lastPageLinkParam)
+
+        val pagerTwo = Pager(20, 4, 242)
+        assertEquals(pagerTwo.numPages, pagerTwo.lastPageLinkParam)
+    }
+
+    @Test
+    fun firstPageLinkParamShouldAlwaysReturnZeroNoMatterThePagerSetup() {
+        val empty = Pager()
+        assertEquals(0, empty.firstPageLinkParam)
+
+        val notEmpty = Pager(10, 0, 22)
+        assertEquals(0, notEmpty.firstPageLinkParam)
+    }
+
+    @Test
+    fun inEmptyPagerFirstPageEqualsLastPageAll() {
+        val empty = Pager()
+
+        assertTrue(empty.isEmpty())
+        assertEquals(0, empty.numPages)
+        assertEquals(empty.firstPageLinkParam, empty.lastPageLinkParam)
+        assertNull(empty.nextPageLinkParam)
+        assertNull(empty.previousPageLinkParam)
+    }
+
+    @Test
+    fun isEmptyShouldReturnFalseInNonEmptyPager() {
+        val singleItemPager = Pager(1, 0, 1)
+        assertFalse(singleItemPager.isEmpty())
+
+        val multiItemPager = Pager(10, 20, 1024)
+        assertFalse(multiItemPager.isEmpty())
+    }
+
 }
