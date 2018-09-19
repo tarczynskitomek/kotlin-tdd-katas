@@ -7,17 +7,17 @@ class Account(val id: String,
               val allowedCreditAmount: BigDecimal = BigDecimal.ZERO) {
 
     init {
-        check(id.isNotBlank())
-        check(allowedCreditAmount >= BigDecimal.ZERO)
+        check(id.isNotBlank()) { "Account id cannot be empty or blank" }
+        check(allowedCreditAmount >= BigDecimal.ZERO) { "Allowed credit limit cannot be negative" }
     }
 
     fun isWithdrawalPossible(withdrawAmount: BigDecimal): Boolean {
-        check(withdrawAmount > BigDecimal.ZERO)
+        check(withdrawAmount >= BigDecimal.ZERO) { "Withdrawal amount cannot be negative" }
         return balance + allowedCreditAmount - withdrawAmount >= BigDecimal.ZERO
     }
 
     override fun equals(other: Any?): Boolean {
-        return other is Account && other.id == this.id
+        return other === this || other is Account && other.id == this.id
 
     }
 

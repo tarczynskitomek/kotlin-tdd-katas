@@ -1,13 +1,13 @@
 package it.tarczynski.kotlincata.bank
 
-import org.assertj.core.api.Assertions
+import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 import java.math.BigDecimal
 
-class TransactionServiceTest {
+class TransactionServiceSpec {
 
     private val transactionService: TransactionService = DefaultTransactionService(mutableSetOf())
 
@@ -16,34 +16,40 @@ class TransactionServiceTest {
         transactionService.clearAccounts()
     }
 
-    @Test(expected = IllegalStateException::class)
-    fun forUnknownPayerShouldThrowAnException() {
-        val unknown = Account("uknown")
+    @Test
+    fun forUnknownTransactionParticipantsShouldThrowAnException() {
+        val unknown = Account("unknown")
         val ok = Account("ok")
         transactionService.addAccounts(ok)
-        transactionService.transfer(unknown, ok, BigDecimal.ONE)
+
+        assertThatThrownBy { transactionService.transfer(unknown, ok, BigDecimal.ONE) }
+                .isInstanceOf(IllegalStateException::class.java)
+                .hasMessage("Unknown payment participant")
+
+        assertThatThrownBy { transactionService.transfer(ok, unknown, BigDecimal.ONE) }
+                .isInstanceOf(IllegalStateException::class.java)
+                .hasMessage("Unknown payment participant")
     }
 
-    @Test(expected = IllegalStateException::class)
-    fun forUnknownPayeeShouldThrowAnException() {
-        val unknown = Account("uknown")
-        val ok = Account("ok")
-        transactionService.addAccounts(ok)
-        transactionService.transfer(ok, unknown, BigDecimal.ONE)
-    }
-
-    @Test(expected = IllegalStateException::class)
+    @Test
     fun forSamePayerAndPayeeShouldThrowAnException() {
         val payer = Account("1", BigDecimal.TEN)
         val payee = Account("1", BigDecimal.TEN)
-        transactionService.transfer(payer, payee, BigDecimal.ONE)
+        transactionService.addAccounts(payer, payee)
+
+        assertThatThrownBy { transactionService.transfer(payer, payee, BigDecimal.ONE) }
+                .isInstanceOf(IllegalStateException::class.java)
+                .hasMessage("Payment participants have to be different")
     }
 
-    @Test(expected = IllegalStateException::class)
+    @Test
     fun forZeroAmountShouldThrowAnException() {
         val payer = Account("1", BigDecimal.TEN)
         val payee = Account("2", BigDecimal.TEN)
-        transactionService.transfer(payer, payee, BigDecimal.ZERO)
+        transactionService.addAccounts(payee, payer)
+
+        assertThatThrownBy { transactionService.transfer(payer, payee, BigDecimal.ZERO) }
+                .isInstanceOf(IllegalStateException::class.java)
     }
 
     @Test
@@ -52,8 +58,7 @@ class TransactionServiceTest {
         val payee = Account("2", BigDecimal.TEN)
         transactionService.addAccounts(payer, payee)
 
-        Assertions
-                .assertThatThrownBy { transactionService.transfer(payer, payee, BigDecimal.ONE) }
+        assertThatThrownBy { transactionService.transfer(payer, payee, BigDecimal.ONE) }
                 .isInstanceOf(IllegalStateException::class.java)
     }
 

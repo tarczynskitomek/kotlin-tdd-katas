@@ -32,13 +32,11 @@ class DefaultTransactionService(private val accounts: MutableSet<Account>) : Tra
         return accounts.add(account)
     }
 
-    private fun validateTransactionArguments(payer: Account,
-                                             payee: Account,
-                                             amount: BigDecimal) {
-        check(accounts.contains(payer) && accounts.contains(payee))
-        check(payer != payee)
-        check(amount > BigDecimal.ZERO)
-        check(payer.isWithdrawalPossible(amount))
+    private fun validateTransactionArguments(payer: Account, payee: Account, amount: BigDecimal) {
+        check(accounts.contains(payer) && accounts.contains(payee)) { "Unknown payment participant" }
+        check(payer != payee) { "Payment participants have to be different" }
+        check(amount > BigDecimal.ZERO) { "Transmitted amount has to be positive" }
+        check(payer.isWithdrawalPossible(amount)) { "Payer account has insufficient founds" }
     }
 
     override fun addAccounts(vararg accounts: Account) = this.accounts.addAll(accounts)
