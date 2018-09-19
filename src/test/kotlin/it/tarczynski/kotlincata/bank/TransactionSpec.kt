@@ -1,10 +1,7 @@
 package it.tarczynski.kotlincata.bank
 
 import org.assertj.core.api.Assertions
-import org.junit.Assert.assertEquals
-import org.junit.Assert.assertTrue
 import org.junit.Test
-import java.lang.IllegalStateException
 import java.math.BigDecimal
 
 class TransactionSpec {
