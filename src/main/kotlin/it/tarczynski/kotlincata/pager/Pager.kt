@@ -1,43 +1,53 @@
 package it.tarczynski.kotlincata.pager
 
-import java.math.RoundingMode
 
-private const val FIRST_PAGE_INDEX = 0
-/**
- * Some assumptions I've made while coding this class:
- * - the pages are indexed from zero, thus the displayed value of the current page should be incremented by 1
- * - the class is ignorant about any "link" / "url" creation logic returning only the first / last / next / previous page index.
- *   Thus that logic should be a concert of a client of Pager class.
- * - pager is empty when there are no items. Single page pager is a valid, non empty pager
- */
-class Pager(val pageSize: Int = 1, val currentPage: Int = 0, val numItems: Int = 0) {
+class Pager(val itemCount: Int,
+            val pageSize: Int,
+            val currentPage: Int = 1) {
 
     init {
-        if (pageSize < 1) throw IllegalArgumentException("Page size has to be a positive number")
-        if (currentPage < 0) throw IllegalArgumentException("Current page has to be a non-negative number")
-        if (numItems < 0) throw IllegalArgumentException("Number of items has to be a non-negative number")
+        if (itemCount < 1) throw IllegalArgumentException("Pager cannot be created for zero or negative number of items")
+        if (pageSize < 1) throw IllegalArgumentException("Page size has to be positive")
     }
 
-    val numPages: Int
-        get() = numItems.toBigDecimal()
-                .divide(pageSize.toBigDecimal())
-                .setScale(0, RoundingMode.UP)
-                .toInt()
+    val numberOfPages: Int
+        get() {
+            val result = itemCount / pageSize
+            return if (itemCount % pageSize == 0) return result else result + 1
+        }
 
-    val nextPageLinkParam: Int?
-        get() = if (currentPage == numPages) null else currentPage + 1
+    val prevButtonVisible: Boolean
+        get() = currentPage > 1
 
-    val previousPageLinkParam: Int?
-        get() = if (currentPage == 0) null else currentPage - 1
+    val nextButtonVisible: Boolean
+        get() = currentPage < numberOfPages
 
-    val lastPageLinkParam: Int = numPages
+    val getPagesToPrint: Array<Link>
+        get() {
+            return with(mutableListOf<Link>()) {
+                if (prevButtonVisible) add(Link("<"))
+                if (currentPage > 2) add(Link("1"))
+                if (currentPage > 3) add(Link("..."))
 
-    val firstPageLinkParam: Int = FIRST_PAGE_INDEX
+                addAll(getMiddlePages())
 
-    fun showPreviousPageLink(): Boolean = currentPage != 0
+                if (currentPage < numberOfPages - 2) add(Link("..."))
+                if (currentPage < numberOfPages - 1) add(Link(numberOfPages.toString()))
+                if (nextButtonVisible) add(Link(">"))
 
-    fun showNextPageLink(): Boolean = currentPage < numPages
+                toTypedArray()
+            }
+        }
 
-    fun isEmpty(): Boolean = numItems == 0
+    private fun getMiddlePages(): Array<Link> {
+        if (numberOfPages == 1) return arrayOf(Link("1"))
+        if (currentPage == 1) return arrayOf(Link("1"), Link("2"))
+        if (currentPage == numberOfPages) return arrayOf(Link((numberOfPages - 1).toString()), Link(numberOfPages.toString()))
+
+        return arrayOf(Link((currentPage - 1).toString()), Link(currentPage.toString()), Link((currentPage + 1).toString()))
+    }
+
 
 }
+
+data class Link(val label: String)
